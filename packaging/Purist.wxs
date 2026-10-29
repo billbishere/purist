@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Purist's installer (spec §12), built by scripts\package.ps1 with WiX 7 from the jpackage app image.
+
+  Per user, no admin: everything goes under %LOCALAPPDATA%\Programs\Purist and HKCU. The library and settings in
+  %USERPROFILE%\.purist are not installed files, so an upgrade or an uninstall leaves them alone.
+
+  File types get "Open with Purist" entries (OpenWithProgids) only. Purist never makes itself the default app: .iso
+  in particular must keep opening as a mounted disc image.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Purist" Manufacturer="Purist" Version="$(var.Version)" Scope="perUser"
+           UpgradeCode="72287a29-baac-4cd0-ac77-908b5c6bc7e8" Compressed="yes">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Purist is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="PuristIcon" SourceFile="$(var.AppDir)\Purist.exe" />
+    <Property Id="ARPPRODUCTICON" Value="PuristIcon" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Purist" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Files Directory="INSTALLFOLDER" Include="$(var.AppDir)\**" />
+
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder">
+      <Shortcut Id="PuristShortcut" Name="Purist" Description="Bit-perfect music player"
+                Target="[INSTALLFOLDER]Purist.exe" WorkingDirectory="INSTALLFOLDER" />
+      <RegistryValue Root="HKCU" Key="Software\Purist" Name="StartMenuShortcut" Type="integer" Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <Component Id="OpenWith" Directory="INSTALLFOLDER">
+      <RegistryValue Root="HKCU" Key="Software\Purist" Name="OpenWith" Type="integer" Value="1" KeyPath="yes" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\Purist.Audio" Type="string" Value="Audio file (Purist)" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\Purist.Audio\DefaultIcon" Type="string"
+                     Value="[INSTALLFOLDER]Purist.exe,0" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\Purist.Audio\shell\open\command" Type="string"
+                     Value="&quot;[INSTALLFOLDER]Purist.exe&quot; &quot;%1&quot;" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\Applications\Purist.exe\shell\open\command" Type="string"
+                     Value="&quot;[INSTALLFOLDER]Purist.exe&quot; &quot;%1&quot;" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\Applications\Purist.exe" Name="FriendlyAppName"
+                     Type="string" Value="Purist" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.flac\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.wav\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.aif\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.aiff\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.aifc\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.dsf\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.dff\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.iso\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+    </Component>
+  </Package>
+</Wix>
