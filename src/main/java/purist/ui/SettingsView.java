@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,7 +146,10 @@ public final class SettingsView extends JPanel {
             status.setText("No output device found. Connect a DAC or install its ASIO driver, then restart Purist.");
         }
 
+        JPanel skinGrid = new JPanel(new GridLayout(0, 4, 8, 8)); // eight skins: two rows of four
+        skinGrid.setOpaque(false);
         JPanel skinRow = row();
+        skinRow.add(skinGrid);
         for (Skin s : Skin.values()) {
             TextButton b = new TextButton(s.label, false);
             b.addActionListener(e -> {
@@ -153,7 +157,7 @@ public final class SettingsView extends JPanel {
                 markSkin(s);
             });
             skinButtons.add(b);
-            skinRow.add(b);
+            skinGrid.add(b);
         }
         markSkin(PuristTheme.skin());
 

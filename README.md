@@ -49,7 +49,9 @@ the track and tells you why.
   - Album grid with cover art, Artists and Folders views.
   - foobar-style search: `artist:jackson`, `year:1982`, `format:dsd`, `"exact phrase"`.
 - **Playlists:** tabs, drag to reorder, and a read-only one-time import from foobar2000.
-- **Three skins:** Paper LCD, Phosphor and Ink, inspired by classic hardware decks.
+- **Eight skins:**
+  - Paper LCD, Phosphor and Ink, inspired by classic hardware decks.
+  - Midnight, Crimson, Ocean Neon, Amethyst and Ebony & Ivory, after popular foobar2000 skins.
 - **Device handling:** if the DAC is switched off or unplugged, a banner appears, Purist retries, and playback
   resumes when the DAC comes back.
 
@@ -60,6 +62,20 @@ the track and tells you why.
 | <img src="docs/screenshots/paper-albums.png" alt="Album grid in the Paper LCD skin"> | <img src="docs/screenshots/phosphor-playing.png" alt="A 24/192 FLAC playing bit-perfect in the Phosphor skin"> |
 | **Artists, Ink** | **Settings** |
 | <img src="docs/screenshots/ink-artists.png" alt="Artists view in the Ink skin"> | <img src="docs/screenshots/paper-settings.png" alt="Output, skin and library settings"> |
+
+### More skins
+
+Five more colour sets, each after a popular [foobar2000 skin](https://vsthemes.org/en/skins/foobar2000/):
+Midnight (DarkOne), Crimson, Ocean Neon, Amethyst (Pink Amethyst) and Ebony & Ivory. They're only palettes;
+the layout stays Purist's. Pick one under **Settings → Skin**. It applies at once, even mid-track.
+
+| Midnight | Crimson |
+|---|---|
+| <img src="docs/screenshots/midnight-playing.png" alt="A 24/192 FLAC playing in the Midnight skin"> | <img src="docs/screenshots/crimson-albums.png" alt="Album grid in the Crimson skin"> |
+| **Ocean Neon** | **Amethyst** |
+| <img src="docs/screenshots/ocean-neon-playing.png" alt="A 24/96 FLAC playing in the Ocean Neon skin"> | <img src="docs/screenshots/amethyst-artists.png" alt="Artists view in the Amethyst skin"> |
+| **Ebony & Ivory** | |
+| <img src="docs/screenshots/ivory-playing.png" alt="A 24/96 FLAC playing in the Ebony & Ivory skin"> | |
 
 <sub>The library in these screenshots is invented: silent FLACs with made-up names and generated covers.</sub>
 

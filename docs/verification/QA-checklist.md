@@ -67,6 +67,10 @@ All of §2–7: 2026-10-27, user at the D50, hands-on with `run.cmd` @ ea0a996 (
 
 ## 7. UI and settings
 - [x] The three skins (Paper LCD, Phosphor, Ink) — every view readable, switching while playing
+- [~] Five more skins (Midnight, Crimson, Ocean Neon, Amethyst, Ebony & Ivory), added 2026-10-29: every skin loads,
+  its dark flag matches the chassis, and text, LCD, highlight and button contrast are at least 4.5:1
+  (`PuristThemeTest`). Queue, Albums, Artists and Settings were captured and look right. Switching while playing
+  wasn't tried by hand.
 - [x] Non-Latin tags (for example Japanese) show correctly
 - [x] Tags that look like HTML show as plain text
 - [x] Every keyboard shortcut in every view
