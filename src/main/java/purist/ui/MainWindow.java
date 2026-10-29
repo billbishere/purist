@@ -302,6 +302,7 @@ public final class MainWindow {
         restyle(main);
         PuristTheme.addListener(s -> restyle(main));
 
+        frame.setIconImages(purist.ui.theme.AppIcon.images()); // the title bar and taskbar; not Java's cup
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
             @Override

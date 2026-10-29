@@ -89,5 +89,8 @@ Built 2026-10-28 by `scripts\package.ps1` (jpackage app image + WiX 7, `packagin
       (never made default). Explorer right-click Open with → Purist confirmed by the user 2026-10-28.
 - [x] Upgrade 0.1.0 → 0.1.1 (test build): exit 0, one Purist product left at 0.1.1, `~\.purist` settings and library
       kept.
+- [x] App icon (2026-10-29, test build 0.1.3): `AppIcon` draws it, `scripts\package.ps1` writes `target\purist.ico`
+      for jpackage. The installed Purist.exe carries it (the shortcut and Add/Remove Programs read it from there),
+      and the window title bar shows it rather than Java's cup. Upgrade 0.1.2 → 0.1.3: exit 0.
 - [x] Uninstall: exit 0; the install folder, shortcut, ProgId, Open-with values and `HKCU\Software\Purist` are all
       gone; `~\.purist` (library.db, settings) is kept. 0.1.0 reinstalled afterwards.
