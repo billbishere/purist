@@ -88,7 +88,7 @@ Download `Purist-<version>.msi` from [Releases](../../releases) and run it.
 
 - It installs per user, with no admin prompt, into `%LOCALAPPDATA%\Programs\Purist`, and adds a Start-menu
   shortcut.
-- It adds an **Open with → Purist** entry for `.flac`, `.wav`, `.aif(f/c)`, `.dsf`, `.dff` and `.iso` files, but
+- It adds an **Open with → Purist** entry for `.flac`, `.wav`, `.aif(f/c)`, `.dsf`, `.dff`, `.iso` and `.cue` files, but
   never takes over a default app: `.iso` still mounts as a disc image.
 - It bundles its own Java runtime, so there's nothing else to install.
 - Upgrades keep your settings and library. Uninstalling leaves your data in `%USERPROFILE%\.purist`.

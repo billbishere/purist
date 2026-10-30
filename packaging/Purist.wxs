@@ -53,6 +53,7 @@
       <RegistryValue Root="HKCU" Key="Software\Classes\.dsf\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
       <RegistryValue Root="HKCU" Key="Software\Classes\.dff\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
       <RegistryValue Root="HKCU" Key="Software\Classes\.iso\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
+      <RegistryValue Root="HKCU" Key="Software\Classes\.cue\OpenWithProgids" Name="Purist.Audio" Type="string" Value="" />
     </Component>
   </Package>
 </Wix>
