@@ -26,6 +26,10 @@ All of §2–7: 2026-10-27, user at the D50, hands-on with `run.cmd` @ ea0a996 (
 - [x] FLAC 16/44.1, 24/96 and 24/192
 - [x] DSF DSD128 (Thriller), plus DSD64 if present — native DSD, BIT-PERFECT
 - [~] DFF — none in the library; covered by the DFF decoder unit tests only
+- [~] CUE sheets (added 2026-10-30). Automated: `CueHandlerTest` and `ScannerTest`. Real files, read-only: E:'s
+      Yoshio Kimura WAV image probes as 18 tracks, and the decoded tracks together hash identical to the whole
+      file (172,783,800 frames). D:'s nine per-track sheets and one orphaned sheet add no rows. Not yet heard by hand
+      on the D50: play across a track boundary of the image, seek inside a track, and open a .cue with Open with.
 - [x] SACD ISO (Ted Nugent) — every track starts, and the ISO#n tracks show in the queue
 - [x] Gapless between tracks of one album at the same format
 - [x] A rate change between albums (44.1 → 96 → DSD) — a short gap only, no glitch

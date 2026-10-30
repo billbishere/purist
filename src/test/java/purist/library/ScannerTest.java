@@ -825,4 +825,112 @@ class ScannerTest {
         assertFalse(Scanner.isDriveRoot(Path.of("E:\\Music")));
         assertFalse(Scanner.isDriveRoot(Path.of("music")));
     }
+
+    // ---- CUE sheets ----
+
+    private static final String CUE = """
+            TITLE "Album"
+            FILE "album.wav" WAVE
+              TRACK 01 AUDIO
+                INDEX 01 00:00:00
+              TRACK 02 AUDIO
+                INDEX 01 00:00:30
+            """;
+
+    /** A silent 16-bit stereo 44.1 kHz WAV of {@code frames} frames. */
+    private Path wav(String relative, int frames) throws IOException {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(44 + frames * 4).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        b.put("RIFF".getBytes(StandardCharsets.US_ASCII)).putInt(36 + frames * 4)
+                .put("WAVEfmt ".getBytes(StandardCharsets.US_ASCII)).putInt(16).putShort((short) 1)
+                .putShort((short) 2).putInt(44100).putInt(44100 * 4).putShort((short) 4).putShort((short) 16)
+                .put("data".getBytes(StandardCharsets.US_ASCII)).putInt(frames * 4);
+        Path p = root.resolve(relative);
+        Files.createDirectories(p.getParent());
+        Files.write(p, b.array());
+        return p;
+    }
+
+    private Scanner standard() {
+        return new Scanner(db, DecoderRegistry.standard(), log, p -> cloud.test(p));
+    }
+
+    private List<TrackRow> rowsOf(Path p) {
+        return db.tracks("t.path = ?", List.of(p.toString()), null);
+    }
+
+    @Test
+    void aCueSheetListsItsTracksInPlaceOfTheWholeAlbumFile() throws Exception {
+        Path audio = wav("Album/album.wav", 44100);
+        Path cue = file("Album/album.cue", CUE);
+
+        standard().scan(root, x -> { }, () -> false);
+
+        assertTrue(rowsOf(audio).isEmpty(), "the whole-album file is not listed a second time");
+        List<TrackRow> tracks = rowsOf(cue);
+        assertEquals(List.of(1, 2), tracks.stream().map(t -> t.ref().subsong()).sorted().toList());
+        assertEquals(List.of(17640L, 26460L),
+                tracks.stream().map(t -> t.format().lengthFrames()).sorted().toList());
+    }
+
+    @Test
+    void aSheetAddedLaterReplacesTheWholeFilesRow() throws Exception {
+        Path audio = wav("Album/album.wav", 44100);
+        standard().scan(root, x -> { }, () -> false);
+        assertEquals(1, rowsOf(audio).size());
+
+        Path cue = file("Album/album.cue", CUE);
+        standard().scan(root, x -> { }, () -> false);
+
+        assertTrue(rowsOf(audio).isEmpty());
+        assertEquals(2, rowsOf(cue).size());
+    }
+
+    @Test
+    void theSheetIsRereadWhenItsAudioFileChanges() throws Exception {
+        wav("Album/album.wav", 44100);
+        Path cue = file("Album/album.cue", CUE);
+        standard().scan(root, x -> { }, () -> false);
+        assertEquals(new ScanResult(0, 0, 0, 1, 0), standard().scan(root, x -> { }, () -> false));
+
+        wav("Album/album.wav", 88200);
+        ScanResult r = standard().scan(root, x -> { }, () -> false);
+
+        assertEquals(1, r.updated());
+        assertTrue(rowsOf(cue).stream().anyMatch(t -> t.format().lengthFrames() == 88200 - 17640));
+    }
+
+    @Test
+    void aSheetOverSeparateTrackFilesLeavesThoseFilesListed() throws Exception {
+        Path one = wav("Rip/01.wav", 4410);
+        Path two = wav("Rip/02.wav", 4410);
+        Path cue = file("Rip/rip.cue", """
+                FILE "01.wav" WAVE
+                TRACK 01 AUDIO
+                INDEX 01 00:00:00
+                FILE "02.wav" WAVE
+                TRACK 02 AUDIO
+                INDEX 01 00:00:00
+                """);
+
+        standard().scan(root, x -> { }, () -> false);
+
+        assertEquals(1, rowsOf(one).size());
+        assertEquals(1, rowsOf(two).size());
+        assertTrue(rowsOf(cue).isEmpty());
+    }
+
+    @Test
+    void aCloudOnlyAlbumFileIsNeverOpenedForItsSheet() throws Exception {
+        Path audio = wav("Album/album.wav", 44100);
+        Files.write(audio, new byte[0]); // were it opened, it would be a damaged WAV
+        Path cue = file("Album/album.cue", CUE);
+        cloud = p -> p.equals(audio);
+
+        standard().scan(root, x -> { }, () -> false);
+
+        List<TrackRow> tracks = rowsOf(cue);
+        assertEquals(2, tracks.size());
+        assertTrue(tracks.stream().allMatch(t -> t.supported() && t.format() == null));
+        assertTrue(rowsOf(audio).isEmpty());
+    }
 }

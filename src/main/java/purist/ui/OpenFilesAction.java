@@ -57,9 +57,20 @@ public final class OpenFilesAction {
         }
         files.removeIf(f -> reg.handlerFor(f).isEmpty());
         files.sort(Comparator.comparing(Path::toString, String.CASE_INSENSITIVE_ORDER));
+        // A whole-album file opened along with its CUE sheet plays as the sheet's tracks, not a second time whole.
+        for (Path f : List.copyOf(files)) {
+            if (reg.handlerFor(f).orElse(null) instanceof purist.decode.cue.CueHandler cue) {
+                try {
+                    files.removeAll(cue.audioFiles(f));
+                } catch (IOException | RuntimeException e) {
+                    LOG.log(Level.WARNING, "Cannot read " + f, e);
+                }
+            }
+        }
         List<TrackRef> refs = new ArrayList<>(files.size());
         for (Path f : files) {
-            if (f.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".iso")) {
+            String lower = f.getFileName().toString().toLowerCase(Locale.ROOT);
+            if (lower.endsWith(".iso") || lower.endsWith(".cue")) {
                 try {
                     for (TrackInfo t : reg.probe(f)) {
                         if (t.supported()) {

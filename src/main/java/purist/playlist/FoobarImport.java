@@ -151,7 +151,9 @@ public final class FoobarImport {
             try {
                 Path path = Path.of(pathText);
                 int subsong = 0;
-                boolean iso = pathText.toLowerCase(Locale.ROOT).endsWith(".iso");
+                String lower = pathText.toLowerCase(Locale.ROOT);
+                // foobar2000 numbers the tracks of a CUE sheet by their track number, as Purist does.
+                boolean iso = lower.endsWith(".iso") || lower.endsWith(".cue");
                 if (m.group(1) != null && iso) {
                     subsong = Integer.parseInt(m.group(1));
                 }

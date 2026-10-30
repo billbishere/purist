@@ -38,6 +38,9 @@ the track and tells you why.
 - **Bit-perfect or refuse.** No resampling, dither, gain, EQ, float conversion or fades, ever.
 - **Formats:** FLAC (own decoder, checked against the STREAMINFO MD5), WAV / RF64, AIFF / AIFC, DSF, DFF, and
   SACD ISO (stereo DSD).
+- **CUE sheets:** an album ripped as one file plus a `.cue` file shows up as separate tracks. Each track starts at
+  the exact sample, and the album plays straight through with no gap. A sheet next to separate track files, or
+  one whose album file is gone, is ignored.
 - **Any DAC:**
   - **ASIO** with any installed driver: PCM, plus native DSD64/128 where the driver and DAC support it.
   - **WASAPI exclusive** for class-compliant DACs: PCM untouched, and DSD as DoP v1.1 when you turn it on.

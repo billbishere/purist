@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import purist.decode.DecoderRegistry;
 import purist.decode.TrackInfo;
+import purist.decode.cue.CueHandler;
 
 /**
  * Brings the library database in line with a folder on disk (spec §8). Only reads: nothing under the scanned folder
@@ -270,7 +271,24 @@ public final class Scanner {
     private ScanResult process(Path root, Listing listing, boolean recursive, Consumer<ScanProgress> progress,
             BooleanSupplier cancelled) {
         Map<Path, FileStamp> stored = recursive ? db.stamps(root) : db.stampsIn(root);
-        List<Found> files = listing.files();
+        // A CUE sheet over a whole-album file lists that file as its tracks; the file's own row would list the album
+        // a second time, as one long track, so it is left out and any row it had is removed.
+        Map<Path, List<Path>> sheets = cueSheets(listing.files());
+        Set<Path> claimed = new HashSet<>();
+        sheets.values().forEach(claimed::addAll);
+        List<Found> files = new ArrayList<>(listing.files().size());
+        for (Found f : listing.files()) {
+            if (claimed.contains(f.path())) {
+                continue;
+            }
+            // A sheet's tracks change when its audio file does, so the sheet's stamp covers both.
+            List<Path> audio = sheets.get(f.path());
+            files.add(audio == null ? f : new Found(f.path(), combinedStamp(f.stamp(), audio)));
+        }
+        List<Path> claimedRows = claimed.stream().filter(stored::containsKey).toList();
+        if (!claimedRows.isEmpty()) {
+            db.deleteFiles(claimedRows);
+        }
         int total = files.size();
         int added = 0;
         int updated = 0;
@@ -396,10 +414,55 @@ public final class Scanner {
     }
 
     private List<TrackInfo> read(Path path) throws IOException {
+        if (registry.handlerFor(path).orElse(null) instanceof CueHandler cue) {
+            if (cloudOnly.test(path)) {
+                return List.of(); // the sheet itself is not on disk yet; its tracks are listed once it is
+            }
+            // An audio file still in the cloud is never opened: its tracks come from the sheet alone.
+            boolean onDisk = cue.audioFiles(path).stream().noneMatch(cloudOnly);
+            return cue.probe(path, onDisk);
+        }
         if (registry.handlerFor(path).isPresent() && cloudOnly.test(path)) {
             return List.of(TrackInfo.cloudOnly(path, codecOf(path)));
         }
         return registry.probe(path);
+    }
+
+    /**
+     * Every CUE sheet among {@code files} that plays from whole-album files, with those files. A sheet that cannot be
+     * read claims nothing (its error shows when it is probed), and a sheet still in the cloud is not opened.
+     */
+    private Map<Path, List<Path>> cueSheets(List<Found> files) {
+        Map<Path, List<Path>> out = new java.util.HashMap<>();
+        for (Found f : files) {
+            if (registry.handlerFor(f.path()).orElse(null) instanceof CueHandler cue && !cloudOnly.test(f.path())) {
+                try {
+                    List<Path> audio = cue.audioFiles(f.path());
+                    if (!audio.isEmpty()) {
+                        out.put(f.path(), audio);
+                    }
+                } catch (IOException | RuntimeException e) {
+                    // left to the probe, which records why
+                }
+            }
+        }
+        return out;
+    }
+
+    /** The sheet's stamp with its audio files' folded in: their sizes added, the latest time kept. */
+    private FileStamp combinedStamp(FileStamp sheet, List<Path> audio) {
+        long size = sheet.size();
+        long mtime = sheet.mtime();
+        for (Path p : audio) {
+            try {
+                BasicFileAttributes a = stat.read(p);
+                size += a.size();
+                mtime = Math.max(mtime, a.lastModifiedTime().toMillis());
+            } catch (IOException e) {
+                // a missing audio file: the probe reports it
+            }
+        }
+        return new FileStamp(size, mtime);
     }
 
     private static boolean underAny(Path p, List<Path> dirs) {

@@ -19,7 +19,7 @@ public interface FormatHandler {
     List<TrackInfo> probe(Path p) throws IOException;
 
     /**
-     * Opens one track ({@code subsong} is 0 for every format except SACD ISO).
+     * Opens one track ({@code subsong} is 0 for every format except SACD ISO and CUE sheets).
      *
      * @throws UnsupportedFormatException if the track cannot be played bit-perfectly
      * @throws DecodeException if the file is damaged

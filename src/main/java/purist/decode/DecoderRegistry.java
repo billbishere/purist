@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import purist.decode.aiff.AiffHandler;
+import purist.decode.cue.CueHandler;
 import purist.decode.dsd.DffHandler;
 import purist.decode.dsd.DsfHandler;
 import purist.decode.flac.FlacHandler;
@@ -34,7 +35,7 @@ public final class DecoderRegistry {
     public DecoderRegistry() {
     }
 
-    /** WAV, AIFF, FLAC, DSF, DFF and SACD ISO. */
+    /** WAV, AIFF, FLAC, DSF, DFF, SACD ISO, and CUE sheets over any of the single-track ones. */
     public static DecoderRegistry standard() {
         DecoderRegistry r = new DecoderRegistry();
         r.register(new WavHandler());
@@ -43,6 +44,7 @@ public final class DecoderRegistry {
         r.register(new DsfHandler());
         r.register(new DffHandler());
         r.register(new SacdHandler());
+        r.register(new CueHandler(r));
         return r;
     }
 
