@@ -31,6 +31,7 @@ if ($LASTEXITCODE -ne 0) { throw "icon failed" }
 jpackage --type app-image --name Purist --app-version $Version --vendor Purist --icon $icon `
     --input $stage --main-jar purist-0.1.0-SNAPSHOT.jar --main-class purist.app.Main `
     --java-options "-XX:+UseZGC" --java-options "--enable-native-access=ALL-UNNAMED" `
+    --java-options "-Dpurist.version=$Version" `
     --dest $dist
 if ($LASTEXITCODE -ne 0) { throw "jpackage failed" }
 

@@ -106,6 +106,38 @@ class CueHandlerTest {
         assertTrue(s.perTrackFiles(), "a pre-gap kept at the start of a track file does not make it an image");
     }
 
+    /** EAC's layout: a track's pre-gap (INDEX 00) ends the previous file, and its INDEX 01 follows the next FILE. */
+    @Test
+    void aTrackWhoseIndex01FollowsTheNextFileLineBelongsToThatFile() throws Exception {
+        CueSheet s = CueSheet.parse("""
+                FILE "01 - Prelude.wav" WAVE
+                  TRACK 01 AUDIO
+                    TITLE "Prelude"
+                    INDEX 01 00:00:00
+                  TRACK 02 AUDIO
+                    TITLE "Slam"
+                    INDEX 00 00:52:35
+                FILE "02 - Slam.wav" WAVE
+                    INDEX 01 00:00:00
+                  TRACK 03 AUDIO
+                    TITLE "Plastic World"
+                    INDEX 00 05:44:73
+                FILE "03 - Plastic World.wav" WAVE
+                    INDEX 01 00:00:00
+                """, dir);
+        assertEquals(List.of("01 - Prelude.wav", "02 - Slam.wav", "03 - Plastic World.wav"),
+                s.tracks().stream().map(t -> t.file().getFileName().toString()).toList());
+        assertEquals(List.of(0L, 0L, 0L), s.tracks().stream().map(CueSheet.Track::start).toList());
+        assertEquals("Slam", s.tracks().get(1).tags().first("TITLE").orElseThrow());
+        assertTrue(s.perTrackFiles());
+    }
+
+    @Test
+    void aFileNameWithACharacterWindowsForbidsIsNotAnError() throws Exception {
+        CueSheet s = CueSheet.parse("FILE \"06 Is This Now?.flac\" WAVE\nTRACK 06 AUDIO\nINDEX 01 00:00:00\n", dir);
+        assertEquals("06 Is This Now_.flac", s.tracks().get(0).file().getFileName().toString());
+    }
+
     @Test
     void malformedSheetsAreDecodeErrors() {
         assertThrows(DecodeException.class, () -> CueSheet.parse("TITLE \"x\"\n", dir));

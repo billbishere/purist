@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -87,6 +88,7 @@ public record CueSheet(TagMap album, List<Track> tracks) {
         TagMap album = new TagMap();
         List<Track> tracks = new ArrayList<>();
         Path file = null;
+        Path trackFile = null;
         int number = -1;
         boolean audio = false;
         long start = -1;
@@ -98,20 +100,23 @@ public record CueSheet(TagMap album, List<Track> tracks) {
             String rest = sp < 0 ? "" : line.substring(sp + 1).strip();
             switch (cmd) {
                 case "FILE" -> {
-                    if (number >= 0) {
-                        add(tracks, number, file, audio, start, tags);
+                    // A track still waiting for its INDEX 01 stays open: EAC writes a track's pre-gap (INDEX 00) at
+                    // the end of the previous file, then FILE, then the INDEX 01 that starts it in the new file.
+                    if (number >= 0 && start >= 0) {
+                        add(tracks, number, trackFile, audio, start, tags);
                         number = -1;
                     }
                     file = resolve(dir, fileName(rest));
                 }
                 case "TRACK" -> {
                     if (number >= 0) {
-                        add(tracks, number, file, audio, start, tags);
+                        add(tracks, number, trackFile, audio, start, tags);
                     }
                     String[] parts = rest.split("\\s+");
                     number = parseInt(parts[0], line);
                     audio = parts.length > 1 && parts[1].equalsIgnoreCase("AUDIO");
                     start = -1;
+                    trackFile = file;
                     tags = new TagMap();
                     tags.add("TRACKNUMBER", Integer.toString(number));
                 }
@@ -119,6 +124,7 @@ public record CueSheet(TagMap album, List<Track> tracks) {
                     String[] parts = rest.split("\\s+");
                     if (number >= 0 && parts.length == 2 && parseInt(parts[0], line) == 1) {
                         start = time(parts[1], line);
+                        trackFile = file; // the track is in the file its INDEX 01 is in
                     }
                 }
                 case "TITLE" -> (number >= 0 ? tags : album).add(number >= 0 ? "TITLE" : "ALBUM", value(rest));
@@ -146,7 +152,7 @@ public record CueSheet(TagMap album, List<Track> tracks) {
             }
         }
         if (number >= 0) {
-            add(tracks, number, file, audio, start, tags);
+            add(tracks, number, trackFile, audio, start, tags);
         }
         if (tracks.isEmpty()) {
             throw new DecodeException("the CUE sheet lists no audio track");
@@ -178,9 +184,18 @@ public record CueSheet(TagMap album, List<Track> tracks) {
         return sp > 0 ? rest.substring(0, sp) : rest;
     }
 
+    /**
+     * The named file under {@code dir}. A name with characters a file name cannot hold (a title with {@code ?} that
+     * the ripper wrote into the sheet as it was) gets {@code _} in their place, as rippers name the file itself.
+     */
     private static Path resolve(Path dir, String name) throws DecodeException {
         try {
-            Path p = Path.of(name);
+            Path p;
+            try {
+                p = Path.of(name);
+            } catch (InvalidPathException e) {
+                p = Path.of(name.replaceAll("[<>:\"|?*\\p{Cntrl}]", "_"));
+            }
             return p.isAbsolute() || dir == null ? p : dir.resolve(p);
         } catch (RuntimeException e) {
             throw new DecodeException("the CUE sheet names a file that is not a valid path: " + name);

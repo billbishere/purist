@@ -281,8 +281,14 @@ public final class Scanner {
             if (claimed.contains(f.path())) {
                 continue;
             }
-            // A sheet's tracks change when its audio file does, so the sheet's stamp covers both.
             List<Path> audio = sheets.get(f.path());
+            if (audio != null && audio.isEmpty()) {
+                // A sheet that adds nothing (separate track files, or its album file is gone) has no row. One it
+                // was given before (by a build that could not read it) goes.
+                claimed.add(f.path());
+                continue;
+            }
+            // A sheet's tracks change when its audio file does, so the sheet's stamp covers both.
             files.add(audio == null ? f : new Found(f.path(), combinedStamp(f.stamp(), audio)));
         }
         List<Path> claimedRows = claimed.stream().filter(stored::containsKey).toList();
@@ -429,18 +435,16 @@ public final class Scanner {
     }
 
     /**
-     * Every CUE sheet among {@code files} that plays from whole-album files, with those files. A sheet that cannot be
-     * read claims nothing (its error shows when it is probed), and a sheet still in the cloud is not opened.
+     * Every readable CUE sheet among {@code files}, with the whole-album files it plays from: none for a sheet that
+     * adds nothing. A sheet that cannot be read is left out (its error shows when it is probed), and so is a sheet
+     * still in the cloud, which is not opened.
      */
     private Map<Path, List<Path>> cueSheets(List<Found> files) {
         Map<Path, List<Path>> out = new java.util.HashMap<>();
         for (Found f : files) {
             if (registry.handlerFor(f.path()).orElse(null) instanceof CueHandler cue && !cloudOnly.test(f.path())) {
                 try {
-                    List<Path> audio = cue.audioFiles(f.path());
-                    if (!audio.isEmpty()) {
-                        out.put(f.path(), audio);
-                    }
+                    out.put(f.path(), cue.audioFiles(f.path()));
                 } catch (IOException | RuntimeException e) {
                     // left to the probe, which records why
                 }

@@ -24,8 +24,18 @@ public final class Main {
     private Main() {
     }
 
-    /** The application version, read from the Maven-filtered {@code purist/version.properties}. */
+    /** The system property the installed launcher sets to the release version ({@code scripts\package.ps1}). */
+    static final String VERSION_PROPERTY = "purist.version";
+
+    /**
+     * The application version: the release version the installed launcher passes in {@value #VERSION_PROPERTY}, else
+     * the build's own, read from the Maven-filtered {@code purist/version.properties}.
+     */
     public static String version() {
+        String released = System.getProperty(VERSION_PROPERTY);
+        if (released != null && !released.isBlank()) {
+            return released.strip();
+        }
         try (InputStream in = Main.class.getResourceAsStream(VERSION_RESOURCE)) {
             if (in == null) {
                 throw new IllegalStateException("Missing classpath resource " + VERSION_RESOURCE);

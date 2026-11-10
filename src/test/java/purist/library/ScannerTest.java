@@ -933,4 +933,29 @@ class ScannerTest {
         assertTrue(tracks.stream().allMatch(t -> t.supported() && t.format() == null));
         assertTrue(rowsOf(audio).isEmpty());
     }
+
+    @Test
+    void aSheetAnOlderBuildGreyedOutLosesThatRowOnceItAddsNothing() throws Exception {
+        Path one = wav("Rip/01.wav", 4410);
+        Path two = wav("Rip/02.wav", 4410);
+        Path cue = file("Rip/rip.cue", """
+                FILE "01.wav" WAVE
+                TRACK 01 AUDIO
+                INDEX 01 00:00:00
+                TRACK 02 AUDIO
+                INDEX 00 00:00:05
+                FILE "02.wav" WAVE
+                INDEX 01 00:00:00
+                """);
+        db.markError(cue, new FileStamp(Files.size(cue), Files.getLastModifiedTime(cue).toMillis()),
+                "track 2 of the CUE sheet has no INDEX 01");
+        assertEquals(1, rowsOf(cue).size());
+
+        ScanResult r = standard().scan(root, x -> { }, () -> false);
+
+        assertTrue(rowsOf(cue).isEmpty());
+        assertEquals(1, rowsOf(one).size());
+        assertEquals(1, rowsOf(two).size());
+        assertEquals(0, r.errors());
+    }
 }

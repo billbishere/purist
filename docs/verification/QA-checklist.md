@@ -31,6 +31,11 @@ All of §2–7: 2026-10-27, user at the D50, hands-on with `run.cmd` @ ea0a996 (
       file (172,783,800 frames). D:'s nine per-track sheets and one orphaned sheet add no rows. On the D50, by the
       user, 2026-10-30: the album lists its tracks, plays across a track boundary without a gap, BIT-PERFECT at
       44.1, and seeks within a track. The installer adds Open with for `.cue` (0.1.4).
+- [x] CUE sheets from EAC rips of separate track files (found 2026-11-10 in the scan error log: 20 real sheets
+      failed with "track N has no INDEX 01" and showed as greyed-out rows). A track's INDEX 01 may follow the next
+      FILE line, and a FILE name may hold a character Windows forbids. All 20 now parse and add no rows; a rescan
+      removes the greyed-out row (checked on a copy of the library). The installed app also reports its release
+      version, not the build's 0.1.0-SNAPSHOT.
 - [x] SACD ISO (Ted Nugent) — every track starts, and the ISO#n tracks show in the queue
 - [x] Gapless between tracks of one album at the same format
 - [x] A rate change between albums (44.1 → 96 → DSD) — a short gap only, no glitch
